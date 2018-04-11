@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="description" content="testing file upload">
+  <title>Project | Morpheus</title>
+  <!-- <link rel="stylesheet" href="./css/master.css"> -->
+</head>
+
+<body>
+  <h1>Testing File Modify & Upload</h1>
+  <hr>
+
+  <div id="container">
+
+    <h2>File Reader</h2>
+    <div>
+      Select a text file:
+      <input type="file" id="fileInput">
+    </div>
+    <pre id="fileDisplayArea"></pre>
+
+    <h2>Edit your file here</h2>
+    <h3>Note: changes will not be reflected in the original local file, but the changed text will be used for sending purpose only</h3>
+    <form method="post" action="http://localhost:3000">
+       <!-- Name: <input type="text" name="name" /> -->
+       <textarea name="Text1" id="editor" value="" cols="40" rows="5"></textarea><br>
+       <input type="submit" value="send JSON" />
+   </form>
+    <button type="button" id="toJSON">Convert to JSON</button>
+    <!-- <button type="button" id="sendFile">Send JSON</button> -->
+    <h2>Few cool links to explore in depth</h2>
+    <ul>
+      <li> <a href="https://developer.mozilla.org/en-US/docs/Web/API/FileReader">FileReader()</a> </li>
+      <li> <a href="http://blog.teamtreehouse.com/reading-files-using-the-html5-filereader-api">Cool fileReader demo article</a></li>
+      <li> <a href="https://stackoverflow.com/questions/12006417/node-js-server-that-accepts-post-requests">Handle post on both client &amp; server</a> </li>
+      <li> <a href=""></a> </li>
+      <li> <a href=""></a> </li>
+    </ul>
+
+  </div>
+  <script type="text/javascript">
+    window.onload = function() {
+
+      var fileInput = document.getElementById('fileInput');
+      var fileDisplayArea = document.getElementById('fileDisplayArea');
+      var editor = document.getElementById('editor');
+      var toJSONbutton = document.getElementById('toJSON');
+      var sendFileButton = document.getElementById('sendFile');
+      var text = "";
+      var textJSON = ""
+      fileInput.addEventListener('change', function(e) {
+        // Now our file reading stuffs with HTML5 fileReader API comes here
+
+
+        /*We first fetch the first file from our input by examining the
+        fileInputs files property and store this in a variable called file*/
+        var file = fileInput.files[0];
+
+        /*We also create a variable called textType that holds a regular
+        expression that we have used in the if() to test that the selected file is
+        indeed a text file.*/
+        var textType = /text.*/;
+
+
+
+        if (file.type.match(textType)) {
+
+          /*Once we have determined that the file type is correct we create a new
+          instance of FileReader*/
+          var reader = new FileReader();
+
+          /*Next we setup an event listener for the onload event
+          Within this event listener we add some code that will update the
+          innerText property of fileDisplayArea using the result property from
+          our FileReader*/
+          reader.onload = function(e) {
+            text = reader.result;
+            editor.value = reader.result;
+            fileDisplayArea.innerText = reader.result;
+          }
+
+          /*Finally we call the readAsText() method, passing in the file
+          variable that we created earlier.*/
+          reader.readAsText(file);
+
+        } else {
+          fileDisplayArea.innerText = "File not supported!";
+        }
+
+        //Modify the text file whenever there are changes in the editor
+        editor.addEventListener("input", function(){
+          text = editor.value;
+        });
+
+
+        //convert text to JSON on clicking button, then show it in upper text box
+        toJSONbutton.addEventListener('click', function(){
+          fileDisplayArea.innerText = textToJSON(text);
+        });
+
+      });
+
+      /*it receives a text and breaks it line by line and returns
+      a JSON format line array*/
+      function textToJSON(text){
+        return JSON.stringify(text.split('\n'), null, 2);
+      }
+
+      function handlePostRequest(data){
+        console.log('begin Post request');
+        var http = new XMLHttpRequest();
+        var params = data;
+        http.open("POST", "http://localhost:3000", true);
+
+        http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        //http.setRequestHeader("Content-length", params.length);
+        //http.setRequestHeader("Connection", "close");
+
+        http.onreadystatechange = function() {
+            console.log('onreadystatechange');
+            if (http.readyState == 4 && http.status == 200) {
+                alert(http.responseText);
+            }
+            else {
+                console.log('readyState=' + http.readyState + ', status: ' + http.status);
+            }
+        }
+
+        console.log('sending...')
+        http.send(params);
+        console.log('end');
+      }
+
+    }
+  </script>
+</body>
+
+</html>
